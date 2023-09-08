@@ -34,11 +34,53 @@ class InteractiveMap extends StatelessWidget {
       LatLng southWest = transformation.transform(3000, 3000);
 
       LatLngBounds latLngBonds = LatLngBounds(northEast, southWest);
+      List<List<num>> polygon = [
+        [2049.5, 1568],
+        [2048, 1584.5],
+        [2028, 1621],
+        [1982, 1697],
+        [1947, 1746.5],
+        [1924.5, 1750],
+        [1916.75, 1756.5],
+        [1921.03, 1779.46],
+        [1858.56, 1845.93],
+        [1803.53, 1896.97],
+        [1763.5, 1901],
+        [1715.5, 1870],
+        [1673.5, 1844],
+        [1604, 1799],
+        [1562, 1772],
+        [1429, 1687],
+        [1423.5, 1651.5],
+        [1543.5, 1489],
+        [1564, 1485],
+        [1572, 1475],
+        [1569.92, 1453.6],
+        [1691, 1301.5],
+        [1692.75, 1300],
+        [1696.5, 1298],
+        [1700.75, 1297.25],
+        [1707.25, 1296.5],
+        [1713.25, 1298.25],
+        [1727.5, 1309.75],
+        [1769.25, 1342],
+        [1817.5, 1379],
+        [1942.25, 1475.5],
+        [2043, 1553.75],
+        [2048.25, 1559],
+        [2049.25, 1563.75]
+      ];
+      List<LatLng> polygonLatLng = [];
+      for (var point in polygon) {
+        polygonLatLng.add(transformation.transform(point[0], point[1]));
+      }
       MapOptions mapOptions = MapOptions(
           onTap: (position, coordinates) {
-            debugPrint(coordinates.toString());
-            debugPrint(position.global.toString());
-            debugPrint(position.relative.toString());
+            final a1 = transformation.untransform(
+                coordinates.latitude, coordinates.longitude);
+            final bool isPolygon =
+                transformation._pointInPolygon(a1[0], a1[1], polygon);
+            debugPrint(isPolygon.toString());
           },
           // crs: con,
           // boundsOptions: FitBoundsOptions()
@@ -85,46 +127,6 @@ class InteractiveMap extends StatelessWidget {
       //   // transformation.transform(0, 3000),
       // ];
       // print(originalPoints2);
-      List<List<num>> polygon = [
-        [2049.5, 1568],
-        [2048, 1584.5],
-        [2028, 1621],
-        [1982, 1697],
-        [1947, 1746.5],
-        [1924.5, 1750],
-        [1916.75, 1756.5],
-        [1921.03, 1779.46],
-        [1858.56, 1845.93],
-        [1803.53, 1896.97],
-        [1763.5, 1901],
-        [1715.5, 1870],
-        [1673.5, 1844],
-        [1604, 1799],
-        [1562, 1772],
-        [1429, 1687],
-        [1423.5, 1651.5],
-        [1543.5, 1489],
-        [1564, 1485],
-        [1572, 1475],
-        [1569.92, 1453.6],
-        [1691, 1301.5],
-        [1692.75, 1300],
-        [1696.5, 1298],
-        [1700.75, 1297.25],
-        [1707.25, 1296.5],
-        [1713.25, 1298.25],
-        [1727.5, 1309.75],
-        [1769.25, 1342],
-        [1817.5, 1379],
-        [1942.25, 1475.5],
-        [2043, 1553.75],
-        [2048.25, 1559],
-        [2049.25, 1563.75]
-      ];
-      List<LatLng> polygonLatLng = [];
-      for (var point in polygon) {
-        polygonLatLng.add(transformation.transform(point[0], point[1]));
-      }
       return FlutterMap(
         options: mapOptions,
         nonRotatedChildren: [
@@ -173,5 +175,26 @@ class Transformation {
       ((lat - southWestLat) / latitudePerPixel).round(),
       ((lng - southWestLng) / longitudePerPixel).round()
     ];
+  }
+
+  bool _pointInPolygon(num x, num y, List<List<num>> points) {
+    int numPoints = points.length;
+    bool inside = false;
+
+    for (int i = 0, j = numPoints - 1; i < numPoints; j = i++) {
+      num xi = points[i][0];
+      num yi = points[i][1];
+      num xj = points[j][0];
+      num yj = points[j][1];
+
+      bool intersect =
+          ((yi > y) != (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+
+      if (intersect) {
+        inside = !inside;
+      }
+    }
+
+    return inside;
   }
 }
